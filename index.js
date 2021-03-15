@@ -2,9 +2,6 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const config = require('./config.json')
 
-const { Collection } = require('discord.js');
-const voiceCollection = new Collection();
-
 const command = require('./commands/command')
 const joinToCreate = require('./events/joinToCreate');
 
