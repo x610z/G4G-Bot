@@ -1,12 +1,29 @@
 const Discord = require('discord.js');
-
 const client = new Discord.Client();
+const config = require('./config.json')
+
+const { Collection } = require('discord.js');
+const voiceCollection = new Collection();
+
+const command = require('./commands/command')
+const joinToCreate = require('./events/joinToCreate');
+
+client.on('ready', async ()=>{
+    console.log('G4G Bot is online');
+
+    command(client, 'ping', message => {
+        message.channel.send('Pong!')
+    })
+})
+
+joinToCreate(client);
 
 
-
-client.once('ready', ()=>{
-    console.log('G4G Bot is online')
+client.on("message", msg => {
+    if (msg.content === "ping"){
+        msg.reply("pong")
+    }
 })
 
 
-client.login('Nzk0MDAyNjYyMTk3ODIxNDgy.X-0emg.21hIUv6Nzsw9Tw11saSfHOONqU4');
+client.login(config.token);
