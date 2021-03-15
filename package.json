@@ -1,0 +1,22 @@
+{
+  "name": "g4g-bot",
+  "version": "1.0.0",
+  "description": "G4G Discord Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/x610z/G4G-Bot.git"
+  },
+  "author": "Erik",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/x610z/G4G-Bot/issues"
+  },
+  "homepage": "https://github.com/x610z/G4G-Bot#readme",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  }
+}
