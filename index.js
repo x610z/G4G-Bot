@@ -1,155 +1,171 @@
-const DiscordJS = require('discord.js');
-require('dotenv').config();
+const path = require("path");
+const fs = require("fs");
+const Discord = require("discord.js");
+const client = new Discord.Client();
 
-const guildId = '490719740143075348'
-const client = new DiscordJS.Client();
+const config = require("./config.json");
 
-const apiEndpoint = 'https://discord.com/api/v8/applications/794002662197821482/guilds/490719740143075348/commands/penguin'
+client.commands = new Discord.Collection();
+client.events = new Discord.Collection();
 
+const baseFile = "commandHandler.js";
+["commandHandler", "eventHandler"].forEach((handler) => {
+	require(`./handlers/${handler}`)(client, Discord);
+});
+const commandBase = require(`./handlers/${baseFile}`);
 
-//Commands
-const pingCommand = require('./commands/ping');
-const modCommand = require('./commands/moderation/modCommands');
-const embedCommand = require('./commands/embed');
-const clearCommand = require('./commands/moderation/clear.js')
-//Events
-const messageDelete = require('./events/event-logger/messageDeleted');
+commandBase.listen(client, Discord);
 
-const getApp = (guildId) => {
-    const app = client.api.applications(client.user.id)
-    if (guildId) {
-        app.guilds(guildId)
-    }
-    return app
-}
-const createAPIMessage = async (interaction, content) => {
-    const { data, files } = await DiscordJS.APIMessage.create(
-        client.channels.resolve(interaction.channel_id),
-        content
-    )
-        .resolveData()
-        .resolveFiles()
+client.login(config.token);
 
-    return { ...data, files }
-}
+// const commandFiles = fs
+// 	.readdirSync("./commands/")
+// 	.filter((file) => file.endsWith(".js"));
+// for (const file of commandFiles) {
+// 	const command = require(`./commands/${file}`);
+// 	client.commands.set(command.name, command);
+// }
 
-const reply = async (interaction, response) => {
-    let data = {
-        content: response
-    }
+// const readCommands = (dir) => {
+// 	const files = fs.readdirSync(path.join(__dirname, dir));
 
-    //Check for embeds
-    if (typeof response === 'object') {
-        data = await createAPIMessage(interaction, response)
-    }
+// 	for (const file of files) {
+// 		const stat = fs.lstatSync(path.join(__dirname, dir, file));
+// 		//Read folder
+// 		if (stat.isDirectory()) {
+// 			readCommands(path.join(dir, file));
+// 		} else {
+// 			const option = require(path.join(__dirname, dir, file));
+// 			commandBase(option);
+// 		}
+// 	}
+// };
 
-    client.api.interactions(interaction.id, interaction.token).callback.post({
-        data: {
-            type: 4,
-            data
-        }
-    })
-}
+// readCommands("commands");
 
-client.on('ready', async () => {
-    console.log('G4G Bot is online');
+//const guildId = "490719740143075348";
 
-    //Create commands
-    await getApp(guildId).commands.post({
-        data: pingCommand,
-    })
-    await getApp(guildId).commands.post({
-        data: modCommand,
-    })
-    await getApp(guildId).commands.post({
-        data: embedCommand,
-    })
-    await getApp(guildId).commands.post({
-        data: clearCommand,
-    })
+//client.commands = new DiscordJS.Collection();
 
-    //Get commands
-    const commands = await getApp(guildId).commands.get()
-    
+//let slashCommands = [];
 
-    //Delete commands
-    //await getApp(guildId).commands('822470719950291005').delete()
+// async function getFiles(path = "./commands/") {
+// 	const entries = await fs.readdir(path, { withFileTypes: true });
 
-    //console.log(commands)
-    
-    //Command reply
-    client.ws.on('INTERACTION_CREATE', async (interaction) => {
-        const { name, options } = interaction.data;
-        const command = name.toLowerCase();
-        const args = {};
+// 	const files = entries
+// 		.filter((file) => !file.isDirectory())
+// 		.map((file) => ({ ...file, path: path + file.name }));
 
-        if (options) {
-            for (const option of options) {
-                const { name, value } = option
-                args[name] = value
-            }
-        };
-        
-    //Command Handlers
-        //Ping Command
-        if (command === 'ping'){
-            reply(interaction, 'pong')
-            //client.api.interactions(interaction.id, interaction.token).callback.post({})
-        } 
-        //Embed Command
-        else if (command === 'embed') {
-            const embed = new DiscordJS.MessageEmbed()
-                .setTitle('Example Embed')
-            
-            for (const arg in args) {
-                const value = args[arg]
-                embed.addField(arg, value)
-            }
+// 	const folders = entries.filter((folder) => folder.isDirectory());
 
-            reply(interaction, embed)
-        } 
-        //Mod Command
-        else if (command === 'mod') {
-            const subCommand = interaction.data.options[0].name;
-            if (subCommand === 'warn'){
-                console.log('warn')
-            } else if (subCommand === 'kick'){
-                console.log('kick')
-            } else if (subCommand === 'ban'){
-                console.log('ban')
-            }
-        }
-        //Clear Command
-        else if (command === 'clear'){
-            const guild = await client.guilds.cache.get(interaction.guild_id)
-            const member = guild.members.cache.get(interaction.member.user.id)
-            if(member.hasPermission('ADMINISTRATOR')){
-                console.log('has admin')
-                reply(interaction, 'has admin')
-                
-            } else {
-                console.log("you don't have access to that command")
-                reply(interaction, "you don't have access to that command")
-            }
-        }
-        
-    })
+// 	for (const folder of folders)
+// 		slashCommands.push(...(await getFiles(`${path}${folder.name}/`)));
+// 	console.log(files);
+// 	return files;
+// }
+//getFiles()
 
-    /* client.guilds.cache.forEach(guild => {
-        console.log(guild)
-    }) */
+//const apiEndpoint = 'https://discord.com/api/v8/applications/794002662197821482/guilds/490719740143075348/commands/penguin'
 
-    
-    
-    messageDelete(client)
-})
+// const getApp = (guildId) => {
+// 	const app = client.api.applications(client.user.id);
+// 	if (guildId) {
+// 		app.guilds(guildId);
+// 	}
+// 	return app;
+// };
+// const createAPIMessage = async (interaction, content) => {
+// 	const { data, files } = await DiscordJS.APIMessage.create(
+// 		client.channels.resolve(interaction.channel_id),
+// 		content
+// 	)
+// 		.resolveData()
+// 		.resolveFiles();
 
+// 	return { ...data, files };
+// };
+// const reply = async (interaction, response) => {
+// 	let data = {
+// 		content: response,
+// 	};
 
+// 	//Check for embeds
+// 	if (typeof response === "object") {
+// 		data = await createAPIMessage(interaction, response);
+// 	}
 
+// 	client.api.interactions(interaction.id, interaction.token).callback.post({
+// 		data: {
+// 			type: 4,
+// 			data,
+// 		},
+// 	});
+// };
+
+// fs.readdir('./commands/', (err, files) => {
+
+//     if (err) console.log(err);
+
+//     let jsFiles = files.filter(file => file.endsWith('.js'));
+//     if (jsFiles.length <= 0) return console.log('No hay comandos para cargar.');
+
+//     console.log(`Cargando ${jsFiles.length} comandos.`);
+
+//     for (const file of jsFiles) {
+//         const command = require(`./commands/${file}`);
+//         client.commands.set(command.name, command);
+//         slashCommands.push(command)
+//     }
+
+//     console.log(`${jsFiles.length} de ${jsFiles.length} comandos cargados.`);
+// });
+
+// client.on("ready", async () => {
+// 	console.log("G4G Bot is online");
+
+// 	// slashCommands.forEach(command => {
+// 	//     //console.log(command)
+// 	//     getApp(guildId).commands.post({
+// 	//         data: command,
+// 	//     })
+// 	// })
+
+// 	// //Create commands
+// 	// await getApp(guildId).commands.post({
+// 	//     data: pingCommand,
+// 	// })
+
+// 	// //Get commands
+// 	//const commands = await getApp(guildId).commands.get()
+
+// 	// //Delete commands
+// 	//await getApp(guildId).commands('823302130894372874').delete()
+
+// 	//console.log(commands)
+// });
+
+//Command reply
+// client.ws.on('INTERACTION_CREATE', async (interaction) => {
+
+//     const { member, data, guild_id, channel_id } = interaction
+//     const { name, options } = data
+
+//     const command = name.toLowerCase();
+//     const guild = client.guilds.cache.get(guild_id)
+//     const channel = guild.channels.cache.get(channel_id)
+//     const args = {};
+
+//     if (options) {
+//         for (const option of options) {
+//             args[option.name] = option.value;
+//         }
+//     };
+
+//     if(command === 'pong'){
+//         console.log(slashCommands[0].callback)
+//     }
+// })
 
 //Join to Create
-const joinToCreate = require('./events/joinToCreate');
-joinToCreate(client);
-
-
-client.login(process.env.TOKEN);
+/* const joinToCreate = require('./events/joinToCreate');
+joinToCreate(client); */

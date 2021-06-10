@@ -1,0 +1,11 @@
+module.exports = {
+	commands: ["", "", ""],
+	expectedArgs: [],
+	minArgs: 0,
+	maxArgs: 0,
+	permissions: [],
+	requiredRoles: [],
+	callback: (message, arguments, text, client, Discord) => {
+		//Codigo a ejecutar
+	},
+};
